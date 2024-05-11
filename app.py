@@ -374,11 +374,9 @@ if st.button('Simular'):
                    'Classe': ['Não Eleito', 'Eleito']})
 
     resposta = "Não será Eleito"
-    playsound("urna.wav")
     if classe==1:
         resposta = " será Eleito"
         st.balloons()
-        playsound("urna.wav")
     st.write(f"Você {resposta.upper()}")
     st.bar_chart(data=r, x="Classe", y="Probabilidade",
                  color=["#FF0000"])
