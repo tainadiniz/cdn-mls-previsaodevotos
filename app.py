@@ -1,7 +1,7 @@
 import streamlit as st
 from pandas import DataFrame
 import pickle
-
+from playsound import playsound
 # Ler dados do modelo treinado
 modelo = pickle.load(open('modelo_eleicao_municipal.pkl', 'rb'))
 logit = modelo['resultados']
@@ -9,10 +9,44 @@ escala = modelo['escala']
 
 # Titulo do APP
 st.title("Previsão de eleição de candidatos a vereador no estado da Paraíba")
+st.markdown('''
+    <style>
+    .stApp {
+        background-image: url("https://imagens.ebc.com.br/CfhTMvy3MruuywXxD5B36DvEQxE=/1170x700/smart/https://agenciabrasil.ebc.com.br/sites/default/files/atoms/image/urna_menor.jpg?itok=ff-VZfrA");
+        background-size: Cover;
+        background-repeat: no-repeat;  
+        background-position: center;
+    }
+    .stButton > button, .stTextInput, .stSelectbox, .stNumberInput, .stExpander > .stButton, .stMarkdown, .stExpander .stMarkdown {
+        background-color: rgba(255, 255, 255, 0.95); 
+        border-radius: 5px;
+        border: none;
+        padding: 10px;
+    }
+    .stExpander > .stButton {
+        font-size: 18px; 
+        font-weight: bold; 
+    }
+     .stExpander > .stButton {
+        font-size: 20px;
+        font-weight: bold; 
+        color: #333; 
+        background-color: #f9f9f9;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.1); 
+    }
+    </style>
+''', unsafe_allow_html=True)
+
+
+
+
 with st.expander('Modelo', expanded=False):
+
     st.markdown('''
+                
             ## Apresentação do Protótipo
-            Este Aplicativo possibilita que se faça previsões sobre a eleião ou naõ de um candidato a vereador no estado da Paraíba apartir de dados das eleições de 2020 usando uma modelagem de `Machine Learning`.
+            Este Aplicativo possibilita que se faça previsões sobre a eleição ou não de um candidato a vereador no estado da Paraíba
+            a partir de dados das eleições de 2020 usando uma modelagem de `Machine Learning`.
 
             ## Modelo canônico
             Regressão logística
@@ -26,13 +60,13 @@ st.header("Dados de Entrada")
 sexo = st.selectbox("Informe seu sexo:", ['Feminino', 'Masculino'])
 idade = st.number_input("Informe sua idade:", value=30)
 gastos = st.number_input("Informe o valor que ira destinar a campanha:", value=0)
-reeleição = st.selectbox("Você é candidato a reeleição?", ['Sim', 'Não'])
+reeleição = st.selectbox("Você é candidato a reeleição?", ['Sou', 'Não sou'])
 
-idade_n = (idade - escala[0]['IDADE'][0])/(escala[0]['IDADE'][1] - escala[0]['IDADE'][0])
+idade_n = (idade - escala[1]['IDADE'][0])/(escala[1]['IDADE'][1] - escala[1]['IDADE'][0])
 
-gastos_n = (gastos - escala[1]['VR_DESPESA_MAX_CAMPANHA'][0])/(escala[1]['VR_DESPESA_MAX_CAMPANHA'][1] - escala[1]['VR_DESPESA_MAX_CAMPANHA'][0])
+gastos_n = (gastos - escala[0]['VR_DESPESA_MAX_CAMPANHA'][0])/(escala[0]['VR_DESPESA_MAX_CAMPANHA'][1] - escala[0]['VR_DESPESA_MAX_CAMPANHA'][0])
 
-st.write(f"Idade declarada {idade}. Sexo declarado: {sexo}. gastos de campanha declarados: {gastos}. {reeleição} é candidato a reeleção")
+st.write(f"Tenho {idade} anos. Meu sexo é {sexo}. Meu orçamento na campanha será de R$ {gastos}. {reeleição} candidato a reeleição.")
 
 # Data frame: atributos do modelo treinado
 
@@ -296,11 +330,40 @@ data = DataFrame({
     'SG_UE_22357': [False],
     'SG_UE_22373': [False],
     'SG_UE_22390': [False],
-    'SG_UE_22411': [False]
+    'SG_UE_22411': [False],
+    'SG_UE_22438': [False]
 })
 
+colunas = ['VR_DESPESA_MAX_CAMPANHA', 'IDADE', 'CD_GENERO_4', 'ST_REELEICAO_S']
 
-st.table(data)
+#st.table(data[colunas])
+
+# Convertendo o DataFrame para HTML
+html = data[colunas].to_html(index=False)
+
+# Adicionando estilo com CSS
+css_styling = """
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        border: 1px solid #cccccc;
+        padding: 8px;
+        text-align: left;
+    }
+    th {
+        background-color: #004682;  /* Cor de fundo do cabeçalho */
+        color: white;
+    }
+    tr:nth-child(even) {background-color: #f2f2f2;}  /* Linhas pares */
+    tr:hover {background-color: #ddd;}  /* Hover de linhas */
+</style>
+"""
+
+# Exibindo a tabela estilizada no Streamlit
+st.markdown(css_styling + html, unsafe_allow_html=True)
 
 if st.button('Simular'):
     st.header('Resultados')
@@ -308,14 +371,16 @@ if st.button('Simular'):
     probabilidade = logit.predict_proba(data)
 
     r = DataFrame({'Probabilidade': probabilidade[0],
-                   'Classe': ['Eleito', 'Não Eleito']})
+                   'Classe': ['Não Eleito', 'Eleito']})
 
     resposta = "Não será Eleito"
+    playsound("urna.wav")
     if classe==1:
-        resposta = "será Eleito"
+        resposta = " será Eleito"
         st.balloons()
-
+        playsound("urna.wav")
     st.write(f"Você {resposta.upper()}")
     st.bar_chart(data=r, x="Classe", y="Probabilidade",
                  color=["#FF0000"])
-
+    
+    
