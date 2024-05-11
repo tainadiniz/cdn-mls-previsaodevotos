@@ -75,7 +75,7 @@ data = DataFrame({
     'CD_COR_RACA_4': [False],
     'CD_COR_RACA_5': [False],
     'CD_COR_RACA_6': [False],
-    'ST_REELEICAO_S': [reeleição=="Sim"],
+    'ST_REELEICAO_S': [reeleição=="Sou"],
     'SG_UE_19011': [False],
     'SG_UE_19020': [False],
     'SG_UE_19038': [False],
